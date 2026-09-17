@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>RoboLang IDE</title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+
+</head>
+
+
+<body>
+
+    <!-- =========================================
+         TOP NAVIGATION BAR
+    ========================================== -->
+
+    <header class="topbar">
+
+        <div class="brand">
+
+            <div class="brand-icon">
+                🤖
+            </div>
+
+            <div>
+
+                <div class="brand-name">
+                    RoboLang
+                </div>
+
+                <div class="brand-subtitle">
+                    Robot Programming Language
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="connection">
+
+            <span class="connection-dot"></span>
+
+            <span>
+                Backend Connected
+            </span>
+
+        </div>
+
+    </header>
+
+
+
+    <!-- =========================================
+         MAIN APPLICATION
+    ========================================== -->
+
+    <main class="main-container">
+
+
+        <!-- =====================================
+             LEFT SIDE — CODE EDITOR
+        ====================================== -->
+
+        <section class="panel editor-panel">
+
+
+            <!-- Panel Header -->
+
+            <div class="panel-header">
+
+                <div>
+
+                    <h2>
+                        RoboLang Program
+                    </h2>
+
+                    <p>
+                        Write your robot instructions
+                    </p>
+
+                </div>
+
+
+                <span class="file-name">
+                    program.robo
+                </span>
+
+            </div>
+
+
+
+            <!-- =================================
+                 EDITOR
+            ================================== -->
+
+            <div class="editor-container">
+
+
+                <!-- Line Numbers -->
+
+                <div
+                    class="line-numbers"
+                    id="lineNumbers"
+                >
+                    1
+                </div>
+
+
+                <!-- Code Area -->
+
+                <textarea
+                    id="codeEditor"
+                    spellcheck="false"
+                    autocomplete="off"
+                    autocorrect="off"
+                    autocapitalize="off"
+                >START
+
+MOVE 100
+TURN RIGHT
+MOVE 50
+TURN LEFT
+MOVE 30
+
+STOP</textarea>
+
+            </div>
+
+
+
+            <!-- =================================
+                 BUTTONS
+            ================================== -->
+
+            <div class="editor-actions">
+
+                <button
+                    class="run-button"
+                    onclick="runProgram()"
+                >
+
+                    <span class="button-icon">
+                        ▶
+                    </span>
+
+                    RUN PROGRAM
+
+                </button>
+
+
+                <button
+                    class="reset-button"
+                    onclick="resetRobot()"
+                >
+
+                    <span class="button-icon">
+                        ↻
+                    </span>
+
+                    RESET
+
+                </button>
+
+            </div>
+
+
+        </section>
+
+
+
+        <!-- =====================================
+             RIGHT SIDE — SIMULATOR
+        ====================================== -->
+
+        <section class="panel simulator-panel">
+
+
+            <!-- Panel Header -->
+
+            <div class="panel-header">
+
+                <div>
+
+                    <h2>
+                        Robot Simulator
+                    </h2>
+
+                    <p>
+                        Real-time VM execution
+                    </p>
+
+                </div>
+
+
+                <span
+                    id="robotStatus"
+                    class="status-badge"
+                >
+                    Ready
+                </span>
+
+            </div>
+
+
+
+            <!-- =================================
+                 SIMULATION WORLD
+            ================================== -->
+
+            <div class="world">
+
+                <div class="world-label">
+                    SIMULATION WORLD
+                </div>
+
+
+                <!-- Grid -->
+
+                <div class="grid"></div>
+
+
+                <!-- Canvas -->
+
+                <canvas
+                    id="simulationCanvas"
+                ></canvas>
+
+
+                <!-- Robot -->
+
+                <div
+                    id="robot"
+                    class="robot"
+                >
+                    🤖
+                </div>
+
+
+                <!-- Coordinate origin -->
+
+                <div class="origin-marker">
+                    <span></span>
+                    START
+                </div>
+
+            </div>
+
+
+
+            <!-- =================================
+                 ROBOT STATE
+            ================================== -->
+
+            <div class="robot-info">
+
+
+                <!-- X -->
+
+                <div class="state-box">
+
+                    <span class="state-label">
+                        X POSITION
+                    </span>
+
+                    <strong id="robotX">
+                        0
+                    </strong>
+
+                </div>
+
+
+                <!-- Y -->
+
+                <div class="state-box">
+
+                    <span class="state-label">
+                        Y POSITION
+                    </span>
+
+                    <strong id="robotY">
+                        0
+                    </strong>
+
+                </div>
+
+
+                <!-- Direction -->
+
+                <div class="state-box">
+
+                    <span class="state-label">
+                        DIRECTION
+                    </span>
+
+                    <strong id="robotDirection">
+                        NORTH
+                    </strong>
+
+                </div>
+
+
+                <!-- Angle -->
+
+                <div class="state-box">
+
+                    <span class="state-label">
+                        ANGLE
+                    </span>
+
+                    <strong id="robotAngle">
+                        270°
+                    </strong>
+
+                </div>
+
+
+            </div>
+
+
+        </section>
+
+    </main>
+
+
+
+    <!-- =========================================
+         COMPILER PIPELINE
+    ========================================== -->
+
+    <section class="pipeline-panel">
+
+
+        <div class="pipeline-title">
+
+            <div>
+
+                <h2>
+                    Compiler Pipeline
+                </h2>
+
+                <p>
+                    Source code → executable robot instructions
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="pipeline">
+
+
+            <!-- Lexer -->
+
+            <div class="pipeline-stage">
+
+                <div class="stage-number">
+                    01
+                </div>
+
+                <div class="stage-content">
+
+                    <strong>
+                        Lexer
+                    </strong>
+
+                    <span>
+                        Tokenization
+                    </span>
+
+                </div>
+
+                <div class="stage-status">
+                    ✓
+                </div>
+
+            </div>
+
+
+            <div class="pipeline-arrow">
+                →
+            </div>
+
+
+            <!-- Parser -->
+
+            <div class="pipeline-stage">
+
+                <div class="stage-number">
+                    02
+                </div>
+
+                <div class="stage-content">
+
+                    <strong>
+                        Parser
+                    </strong>
+
+                    <span>
+                        Syntax Analysis
+                    </span>
+
+                </div>
+
+                <div class="stage-status">
+                    ✓
+                </div>
+
+            </div>
+
+
+            <div class="pipeline-arrow">
+                →
+            </div>
+
+
+            <!-- AST -->
+
+            <div class="pipeline-stage">
+
+                <div class="stage-number">
+                    03
+                </div>
+
+                <div class="stage-content">
+
+                    <strong>
+                        AST
+                    </strong>
+
+                    <span>
+                        Tree Generation
+                    </span>
+
+                </div>
+
+                <div class="stage-status">
+                    ✓
+                </div>
+
+            </div>
+
+
+            <div class="pipeline-arrow">
+                →
+            </div>
+
+
+            <!-- Semantic -->
+
+            <div class="pipeline-stage">
+
+                <div class="stage-number">
+                    04
+                </div>
+
+                <div class="stage-content">
+
+                    <strong>
+                        Semantic
+                    </strong>
+
+                    <span>
+                        Validation
+                    </span>
+
+                </div>
+
+                <div class="stage-status">
+                    ✓
+                </div>
+
+            </div>
+
+
+            <div class="pipeline-arrow">
+                →
+            </div>
+
+
+            <!-- IR -->
+
+            <div class="pipeline-stage">
+
+                <div class="stage-number">
+                    05
+                </div>
+
+                <div class="stage-content">
+
+                    <strong>
+                        IR
+                    </strong>
+
+                    <span>
+                        Intermediate Code
+                    </span>
+
+                </div>
+
+                <div class="stage-status">
+                    ✓
+                </div>
+
+            </div>
+
+
+            <div class="pipeline-arrow">
+                →
+            </div>
+
+
+            <!-- Code Generation -->
+
+            <div class="pipeline-stage">
+
+                <div class="stage-number">
+                    06
+                </div>
+
+                <div class="stage-content">
+
+                    <strong>
+                        CodeGen
+                    </strong>
+
+                    <span>
+                        Bytecode
+                    </span>
+
+                </div>
+
+                <div class="stage-status">
+                    ✓
+                </div>
+
+            </div>
+
+
+            <div class="pipeline-arrow">
+                →
+            </div>
+
+
+            <!-- VM -->
+
+            <div class="pipeline-stage">
+
+                <div class="stage-number">
+                    07
+                </div>
+
+                <div class="stage-content">
+
+                    <strong>
+                        VM
+                    </strong>
+
+                    <span>
+                        Execution
+                    </span>
+
+                </div>
+
+                <div class="stage-status">
+                    ✓
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =========================================
+         COMPILER OUTPUT
+    ========================================== -->
+
+    <section class="console-panel">
+
+
+        <div class="console-header">
+
+            <div>
+
+                <h2>
+                    Compiler Output
+                </h2>
+
+                <span>
+                    Build & execution log
+                </span>
+
+            </div>
+
+
+            <div class="console-indicator">
+
+                <span></span>
+
+                LIVE
+
+            </div>
+
+        </div>
+
+
+        <pre id="console">RoboLang compiler ready...
+
+Write your program and press RUN PROGRAM.</pre>
+
+
+    </section>
+
+
+
+    <!-- =========================================
+         FOOTER
+    ========================================== -->
+
+    <footer class="footer">
+
+        <span>
+            RoboLang Compiler
+        </span>
+
+        <span>
+            Lexer • Parser • AST • Semantic • IR • Bytecode • VM
+        </span>
+
+    </footer>
+
+
+
+    <!-- =========================================
+         JAVASCRIPT
+    ========================================== -->
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
