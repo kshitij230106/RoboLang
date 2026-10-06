@@ -7,16 +7,24 @@ from compiler.codegen import BytecodeProgram, OP_MOVE, OP_TURN, DIR_LEFT, DIR_RI
 
 class RobotState:
 
-    def __init__(self):
+    def __init__(self, x=0, y=0, direction="NORTH"):
 
-        # Starting position
-        self.x = 0
-        self.y = 0
+        # Current position
+        self.x = x
+        self.y = y
 
-        # Starting direction
-        self.direction = "NORTH"
+        # Current direction
+        self.direction = direction
 
         # Complete movement history
+        self.path = [(self.x, self.y)]
+
+    def reset(self):
+
+        self.x = 0
+        self.y = 0
+        self.direction = "NORTH"
+
         self.path = [(self.x, self.y)]
 
     def __str__(self):
@@ -31,9 +39,17 @@ class RobotState:
 
 class RoboLangVM:
 
-    def __init__(self):
+    def __init__(self, robot=None):
 
-        self.robot = RobotState()
+        # Use an existing RobotState if supplied.
+        #
+        # This is what allows the robot to continue
+        # from its previous position between programs.
+
+        if robot is None:
+            self.robot = RobotState()
+        else:
+            self.robot = robot
 
         # Program Counter
         self.pc = 0
@@ -42,15 +58,18 @@ class RoboLangVM:
         self.running = False
 
     # --------------------------------------
-    # Run bytecode
+    # Run Bytecode
     # --------------------------------------
 
     def run(self, bytecode):
 
         if not isinstance(bytecode, BytecodeProgram):
+
             raise TypeError("VM expected a BytecodeProgram.")
 
+        # Start current program from instruction 0
         self.pc = 0
+
         self.running = True
 
         instructions = bytecode.instructions
@@ -84,7 +103,7 @@ class RoboLangVM:
                 self.pc += 2
 
             # --------------------------------
-            # Unknown opcode
+            # Unknown Opcode
             # --------------------------------
 
             else:
@@ -121,7 +140,7 @@ class RoboLangVM:
 
             raise RuntimeError(f"Invalid robot direction: " f"{self.robot.direction}")
 
-        # Save new position
+        # Save the new position
         self.robot.path.append((self.robot.x, self.robot.y))
 
     # --------------------------------------
@@ -132,20 +151,34 @@ class RoboLangVM:
 
         directions = ["NORTH", "EAST", "SOUTH", "WEST"]
 
+        # Find current direction
         current_index = directions.index(self.robot.direction)
+
+        # --------------------------------
+        # TURN RIGHT
+        # --------------------------------
 
         if direction == DIR_RIGHT:
 
             new_index = (current_index + 1) % 4
 
+        # --------------------------------
+        # TURN LEFT
+        # --------------------------------
+
         elif direction == DIR_LEFT:
 
             new_index = (current_index - 1) % 4
+
+        # --------------------------------
+        # INVALID TURN
+        # --------------------------------
 
         else:
 
             raise RuntimeError(f"Invalid turn code: {direction}")
 
+        # Update robot direction
         self.robot.direction = directions[new_index]
 
 
@@ -160,6 +193,10 @@ if __name__ == "__main__":
     from compiler.semantic import SemanticAnalyzer
     from compiler.ir import IRGenerator
     from compiler.codegen import CodeGenerator
+
+    # --------------------------------------
+    # Test Program
+    # --------------------------------------
 
     source = """
     START
@@ -180,6 +217,7 @@ if __name__ == "__main__":
         # ==============================
 
         lexer = Lexer(source)
+
         tokens = lexer.tokenize()
 
         print("✓ Lexical Analysis")
@@ -189,6 +227,7 @@ if __name__ == "__main__":
         # ==============================
 
         parser = Parser(tokens)
+
         program = parser.parse()
 
         print("✓ Syntax Analysis")
@@ -198,6 +237,7 @@ if __name__ == "__main__":
         # ==============================
 
         analyzer = SemanticAnalyzer()
+
         analyzer.analyze(program)
 
         print("✓ Semantic Analysis")
@@ -207,6 +247,7 @@ if __name__ == "__main__":
         # ==============================
 
         ir_generator = IRGenerator()
+
         ir_program = ir_generator.generate(program)
 
         print("✓ IR Generation")
@@ -216,20 +257,27 @@ if __name__ == "__main__":
         # ==============================
 
         code_generator = CodeGenerator()
+
         bytecode = code_generator.generate(ir_program)
 
         print("✓ Code Generation")
 
         print("\nBytecode:")
         print("--------------------------------")
+
         print(bytecode)
 
         # ==============================
         # 6. VIRTUAL MACHINE
         # ==============================
 
-        vm = RoboLangVM()
+        # Create robot state
+        robot_state = RobotState()
 
+        # Create VM using that state
+        vm = RoboLangVM(robot_state)
+
+        # Execute bytecode
         robot = vm.run(bytecode)
 
         print("\n✓ Virtual Machine Execution")
@@ -242,6 +290,10 @@ if __name__ == "__main__":
         print("--------------------------------")
 
         print(robot)
+
+        # ==============================
+        # ROBOT PATH
+        # ==============================
 
         print("\nRobot Path:")
         print("--------------------------------")

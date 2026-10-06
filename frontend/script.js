@@ -2,13 +2,11 @@
 // RoboLang Frontend
 // ==========================================
 
-
 // ==========================================
 // BACKEND CONFIGURATION
 // ==========================================
 
 const API_URL = "http://127.0.0.1:8000";
-
 
 // ==========================================
 // DOM ELEMENTS
@@ -44,7 +42,6 @@ const simulationCanvas =
 const world =
     document.querySelector(".world");
 
-
 // ==========================================
 // LINE NUMBERS
 // ==========================================
@@ -71,8 +68,8 @@ function updateLineNumbers() {
         lineNumbers.appendChild(line);
 
     });
-}
 
+}
 
 // ==========================================
 // EDITOR EVENTS
@@ -84,7 +81,6 @@ if (codeEditor) {
         "input",
         updateLineNumbers
     );
-
 
     codeEditor.addEventListener(
         "scroll",
@@ -99,7 +95,6 @@ if (codeEditor) {
 
         }
     );
-
 
     // Ctrl + Enter → Run
     codeEditor.addEventListener(
@@ -122,13 +117,11 @@ if (codeEditor) {
 
 }
 
-
 // ==========================================
 // INITIALIZE
 // ==========================================
 
 updateLineNumbers();
-
 
 // ==========================================
 // BACKEND CONNECTION
@@ -166,7 +159,6 @@ async function checkBackend() {
 
 }
 
-
 // ==========================================
 // CONNECTION STATUS
 // ==========================================
@@ -181,7 +173,6 @@ function setConnectionStatus(connected) {
     if (!status) {
         return;
     }
-
 
     if (connected) {
 
@@ -205,16 +196,18 @@ function setConnectionStatus(connected) {
 
 }
 
-
 // ==========================================
 // RUN PROGRAM
 // ==========================================
 
 async function runProgram() {
 
+    if (!codeEditor) {
+        return;
+    }
+
     const source =
         codeEditor.value;
-
 
     // ======================================
     // EMPTY PROGRAM
@@ -238,8 +231,8 @@ async function runProgram() {
         });
 
         return;
-    }
 
+    }
 
     // ======================================
     // CLEAR OLD OUTPUT
@@ -251,10 +244,8 @@ async function runProgram() {
         "Compiling RoboLang program..."
     );
 
-
     let response;
     let data;
-
 
     // ======================================
     // SEND TO BACKEND
@@ -262,23 +253,24 @@ async function runProgram() {
 
     try {
 
-        response = await fetch(
-            `${API_URL}/execute`,
-            {
+        response =
+            await fetch(
+                `${API_URL}/execute`,
+                {
 
-                method: "POST",
+                    method: "POST",
 
-                headers: {
-                    "Content-Type":
-                        "application/json"
-                },
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
 
-                body: JSON.stringify({
-                    source: source
-                })
+                    body: JSON.stringify({
+                        source: source
+                    })
 
-            }
-        );
+                }
+            );
 
     } catch (error) {
 
@@ -286,7 +278,6 @@ async function runProgram() {
             "Backend connection error:",
             error
         );
-
 
         showError({
 
@@ -304,8 +295,8 @@ async function runProgram() {
         });
 
         return;
-    }
 
+    }
 
     // ======================================
     // READ RESPONSE
@@ -323,7 +314,6 @@ async function runProgram() {
             error
         );
 
-
         showError({
 
             stage: "backend",
@@ -340,8 +330,8 @@ async function runProgram() {
         });
 
         return;
-    }
 
+    }
 
     // ======================================
     // COMPILATION FAILED
@@ -352,8 +342,8 @@ async function runProgram() {
         showError(data);
 
         return;
-    }
 
+    }
 
     // ======================================
     // COMPILATION SUCCESSFUL
@@ -363,14 +353,12 @@ async function runProgram() {
 
         showSuccess(data);
 
-
         if (data.robot) {
 
-            // Update final information
+            // Update final state immediately
             updateRobotInfo(
                 data.robot
             );
-
 
             // Animate robot along path
             if (
@@ -379,7 +367,8 @@ async function runProgram() {
             ) {
 
                 await animateRobotPath(
-                    data.robot.path
+                    data.robot.path,
+                    data.robot.direction
                 );
 
             }
@@ -392,7 +381,6 @@ async function runProgram() {
             "Simulator error:",
             error
         );
-
 
         setConsole(
 
@@ -409,7 +397,6 @@ async function runProgram() {
 
 }
 
-
 // ==========================================
 // SHOW ERROR
 // ==========================================
@@ -421,9 +408,7 @@ function showError(data) {
             data.stage || "compiler"
         );
 
-
     let output = "";
-
 
     output +=
         "❌ COMPILATION FAILED\n";
@@ -433,7 +418,6 @@ function showError(data) {
 
     output +=
         `Stage: ${stage}\n\n`;
-
 
     // ======================================
     // Errors
@@ -461,13 +445,10 @@ function showError(data) {
 
     }
 
-
     output +=
         "🛑 Program execution stopped.";
 
-
     setConsole(output);
-
 
     // ======================================
     // Highlight Error Line
@@ -484,7 +465,6 @@ function showError(data) {
 
     }
 
-
     // ======================================
     // Pipeline
     // ======================================
@@ -494,15 +474,16 @@ function showError(data) {
         false
     );
 
-
     // ======================================
-    // Reset Robot
+    // IMPORTANT
+    //
+    // DO NOT RESET ROBOT HERE
+    //
+    // A compilation error should not
+    // move the robot back to the center.
     // ======================================
-
-    resetRobotPosition();
 
 }
-
 
 // ==========================================
 // SHOW SUCCESS
@@ -512,13 +493,11 @@ function showSuccess(data) {
 
     let output = "";
 
-
     output +=
         "✓ COMPILATION SUCCESSFUL\n";
 
     output +=
         "==============================\n\n";
-
 
     output +=
         "Lexer       ✓\n";
@@ -541,7 +520,6 @@ function showSuccess(data) {
     output +=
         "VM          ✓\n\n";
 
-
     // ======================================
     // IR
     // ======================================
@@ -555,9 +533,7 @@ function showSuccess(data) {
     output +=
         data.ir || "(empty)";
 
-
     output += "\n\n";
-
 
     // ======================================
     // BYTECODE
@@ -572,9 +548,7 @@ function showSuccess(data) {
     output +=
         (data.bytecode || []).join(" ");
 
-
     output += "\n\n";
-
 
     // ======================================
     // ROBOT STATE
@@ -594,11 +568,12 @@ function showSuccess(data) {
         output +=
             `Direction: ${data.robot.direction}\n`;
 
+        output +=
+            `Angle: ${directionToAngle(data.robot.direction)}°\n`;
+
     }
 
-
     setConsole(output);
-
 
     // ======================================
     // Pipeline
@@ -610,7 +585,6 @@ function showSuccess(data) {
     );
 
 }
-
 
 // ==========================================
 // FORMAT STAGE NAME
@@ -652,14 +626,12 @@ function formatStageName(stage) {
 
     };
 
-
     return (
         names[stage] ||
         stage
     );
 
 }
-
 
 // ==========================================
 // HIGHLIGHT ERROR LINE
@@ -671,10 +643,8 @@ function highlightErrorLine(lineNumber) {
         return;
     }
 
-
     const lines =
         codeEditor.value.split("\n");
-
 
     if (
         lineNumber < 1 ||
@@ -685,9 +655,7 @@ function highlightErrorLine(lineNumber) {
 
     }
 
-
     let start = 0;
-
 
     for (
         let i = 0;
@@ -700,28 +668,22 @@ function highlightErrorLine(lineNumber) {
 
     }
 
-
     const end =
         start +
         lines[lineNumber - 1].length;
 
-
     codeEditor.focus();
-
 
     codeEditor.setSelectionRange(
         start,
         end
     );
 
-
     const lineHeight = 24;
-
 
     codeEditor.scrollTop =
         (lineNumber - 1) *
         lineHeight;
-
 
     if (lineNumbers) {
 
@@ -731,7 +693,6 @@ function highlightErrorLine(lineNumber) {
     }
 
 }
-
 
 // ==========================================
 // CONSOLE
@@ -748,7 +709,6 @@ function setConsole(message) {
 
 }
 
-
 function clearCompilerOutput() {
 
     if (!consoleOutput) {
@@ -760,7 +720,6 @@ function clearCompilerOutput() {
 
 }
 
-
 // ==========================================
 // COMPILER PIPELINE
 // ==========================================
@@ -770,11 +729,12 @@ function updatePipeline(
     success
 ) {
 
+    // IMPORTANT:
+    // HTML uses .pipeline-stage
     const stages =
         document.querySelectorAll(
-            ".stage"
+            ".pipeline-stage"
         );
-
 
     stages.forEach(
         stage => {
@@ -787,7 +747,6 @@ function updatePipeline(
 
         }
     );
-
 
     const stageMap = {
 
@@ -807,7 +766,6 @@ function updatePipeline(
 
     };
 
-
     if (
         failedStage &&
         stageMap[failedStage] !== undefined
@@ -815,7 +773,6 @@ function updatePipeline(
 
         const index =
             stageMap[failedStage];
-
 
         // Previous stages succeeded
         for (
@@ -834,8 +791,7 @@ function updatePipeline(
 
         }
 
-
-        // Failed stage
+        // Current stage
         if (stages[index]) {
 
             stages[index].classList.add(
@@ -847,7 +803,6 @@ function updatePipeline(
         }
 
     }
-
 
     // Complete success
     if (success) {
@@ -870,7 +825,6 @@ function updatePipeline(
 
 }
 
-
 // ==========================================
 // UPDATE ROBOT INFORMATION
 // ==========================================
@@ -881,50 +835,143 @@ function updateRobotInfo(state) {
         return;
     }
 
+    const x =
+        Number(state.x);
+
+    const y =
+        Number(state.y);
+
+    const direction =
+        normalizeDirection(
+            state.direction
+        );
+
+    updateRobotDisplay(
+        x,
+        y,
+        direction
+    );
+
+}
+
+// ==========================================
+// NORMALIZE DIRECTION
+// ==========================================
+
+function normalizeDirection(direction) {
+
+    if (!direction) {
+        return "NORTH";
+    }
+
+    const value =
+        String(direction)
+            .trim()
+            .toUpperCase();
+
+    if (value === "N") {
+        return "NORTH";
+    }
+
+    if (value === "E") {
+        return "EAST";
+    }
+
+    if (value === "S") {
+        return "SOUTH";
+    }
+
+    if (value === "W") {
+        return "WEST";
+    }
+
+    if (
+        value === "NORTH" ||
+        value === "EAST" ||
+        value === "SOUTH" ||
+        value === "WEST"
+    ) {
+
+        return value;
+
+    }
+
+    return "NORTH";
+
+}
+
+// ==========================================
+// UPDATE ROBOT DISPLAY
+// ==========================================
+
+function updateRobotDisplay(
+    x,
+    y,
+    direction = null
+) {
 
     if (robotX) {
 
         robotX.textContent =
-            state.x;
+            Number(x).toFixed(0);
 
     }
-
 
     if (robotY) {
 
         robotY.textContent =
-            state.y;
+            Number(y).toFixed(0);
 
     }
 
+    if (direction) {
 
-    if (robotDirection) {
+        const normalized =
+            normalizeDirection(
+                direction
+            );
 
-        robotDirection.textContent =
-            state.direction;
+        if (robotDirection) {
 
-    }
+            robotDirection.textContent =
+                normalized;
 
+        }
 
-    if (robotAngle) {
+        if (robotAngle) {
 
-        robotAngle.textContent =
-            `${directionToAngle(
-                state.direction
-            )}°`;
+            robotAngle.textContent =
+                `${directionToAngle(normalized)}°`;
+
+        }
 
     }
 
 }
 
-
 // ==========================================
 // DIRECTION → ANGLE
+// ==========================================
+//
+// Coordinate convention:
+//
+//              NORTH
+//               270°
+//                 ↑
+//
+// WEST  180° ←─────┼─────→ 0° EAST
+//
+//                 ↓
+//               SOUTH
+//                90°
+//
 // ==========================================
 
 function directionToAngle(direction) {
 
-    switch (direction) {
+    switch (
+        normalizeDirection(direction)
+    ) {
 
         case "EAST":
             return 0;
@@ -939,12 +986,74 @@ function directionToAngle(direction) {
             return 270;
 
         default:
-            return 0;
+            return 270;
 
     }
 
 }
 
+// ==========================================
+// CALCULATE DIRECTION FROM MOVEMENT
+// ==========================================
+
+function getDirectionFromMovement(
+    previous,
+    current,
+    previousDirection = null
+) {
+
+    if (!previous || !current) {
+
+        return previousDirection ||
+            "NORTH";
+
+    }
+
+    const dx =
+        Number(current.x) -
+        Number(previous.x);
+
+    const dy =
+        Number(current.y) -
+        Number(previous.y);
+
+    // No position change.
+    // This usually means a TURN instruction
+    // may have happened, but path data alone
+    // cannot reveal that turn.
+    if (
+        dx === 0 &&
+        dy === 0
+    ) {
+
+        return null;
+
+    }
+
+    // Horizontal movement
+    if (
+        Math.abs(dx) >
+        Math.abs(dy)
+    ) {
+
+        if (dx > 0) {
+            return "EAST";
+        }
+
+        return "WEST";
+
+    }
+
+    // Vertical movement
+    if (dy > 0) {
+
+        return "NORTH";
+
+    }
+
+    return "SOUTH";
+
+}
 
 // ==========================================
 // GET WORLD COORDINATES
@@ -958,47 +1067,51 @@ function getWorldPoint(
     maxY
 ) {
 
+    if (!world) {
+
+        return {
+            x: 0,
+            y: 0
+        };
+
+    }
+
     const width =
         world.clientWidth;
 
     const height =
         world.clientHeight;
 
-
-    // ======================================
     // Simulator center = logical (0, 0)
-    // ======================================
-
     const centerX =
         width / 2;
 
     const centerY =
         height / 2;
 
+    // Calculate logical range
+    const maxAbsX =
+        Math.max(
+            Math.abs(Number(minX)),
+            Math.abs(Number(maxX)),
+            100
+        );
 
-    // ======================================
+    const maxAbsY =
+        Math.max(
+            Math.abs(Number(minY)),
+            Math.abs(Number(maxY)),
+            100
+        );
+
     // Scale
-    // ======================================
-
     const scaleX =
         (width - 100) /
-        Math.max(
-            Math.abs(minX),
-            Math.abs(maxX),
-            100
-        ) /
-        2;
-
+        (maxAbsX * 2);
 
     const scaleY =
         (height - 100) /
-        Math.max(
-            Math.abs(minY),
-            Math.abs(maxY),
-            100
-        ) /
-        2;
-
+        (maxAbsY * 2);
 
     const scale =
         Math.min(
@@ -1006,20 +1119,20 @@ function getWorldPoint(
             scaleY
         );
 
-
-    // ======================================
-    // Convert logical → screen coordinates
-    // ======================================
+    // Logical → Screen
+    //
+    // +X = right
+    // -X = left
+    // +Y = up
+    // -Y = down
 
     const screenX =
         centerX +
-        point.x * scale;
-
+        Number(point.x) * scale;
 
     const screenY =
         centerY -
-        point.y * scale;
-
+        Number(point.y) * scale;
 
     return {
         x: screenX,
@@ -1042,16 +1155,13 @@ function moveRobotIcon(
         return;
     }
 
-
     // Make sure robot is positioned
     robotElement.style.position =
         "absolute";
 
-
-    // Remove rotation
+    // DO NOT ROTATE ROBOT
     robotElement.style.transform =
         "translate(-50%, -50%)";
-
 
     if (animate) {
 
@@ -1065,7 +1175,6 @@ function moveRobotIcon(
 
     }
 
-
     robotElement.style.left =
         `${screenX}px`;
 
@@ -1074,12 +1183,14 @@ function moveRobotIcon(
 
 }
 
-
 // ==========================================
 // ANIMATE ROBOT PATH
 // ==========================================
 
-async function animateRobotPath(path) {
+async function animateRobotPath(
+    path,
+    finalDirection = "NORTH"
+) {
 
     if (
         !world ||
@@ -1087,70 +1198,52 @@ async function animateRobotPath(path) {
         !path ||
         path.length === 0
     ) {
+
         return;
+
     }
 
-
     // ======================================
-    // Draw the path
+    // Draw path
     // ======================================
 
     drawRobotPath(path);
 
-
     // ======================================
-    // START ROBOT AT CENTER
+    // IMPORTANT:
+    //
+    // DO NOT MOVE ROBOT BACK TO CENTER
     // ======================================
-
-    const centerX =
-        world.clientWidth / 2;
-
-    const centerY =
-        world.clientHeight / 2;
-
-
-    moveRobotIcon(
-        centerX,
-        centerY,
-        false
-    );
-
-
-    // Make sure starting state is displayed
-    if (robotX) {
-        robotX.textContent = "0";
-    }
-
-    if (robotY) {
-        robotY.textContent = "0";
-    }
-
-    if (robotDirection) {
-        robotDirection.textContent = "NORTH";
-    }
-
-    if (robotAngle) {
-        robotAngle.textContent = "270°";
-    }
-
-
-    // ======================================
-    // Small pause before movement
+    //
+    // The old code did this:
+    //
+    // moveRobotIcon(centerX, centerY, false);
+    //
+    // updateRobotDisplay(0, 0, "NORTH");
+    //
+    // That caused the robot to visually reset
+    // every time the program was executed.
+    //
+    // We intentionally removed it.
     // ======================================
 
     await sleep(500);
-
 
     // ======================================
     // Calculate path boundaries
     // ======================================
 
     const xs =
-        path.map(point => point.x);
+        path.map(
+            point =>
+                Number(point.x)
+        );
 
     const ys =
-        path.map(point => point.y);
-
+        path.map(
+            point =>
+                Number(point.y)
+        );
 
     const minX =
         Math.min(...xs);
@@ -1164,6 +1257,12 @@ async function animateRobotPath(path) {
     const maxY =
         Math.max(...ys);
 
+    // ======================================
+    // Current direction
+    // ======================================
+
+    let currentDirection =
+        normalizeDirection(finalDirection);
 
     // ======================================
     // Move through path
@@ -1175,9 +1274,33 @@ async function animateRobotPath(path) {
         i++
     ) {
 
+        const previous =
+            path[i - 1];
+
         const current =
             path[i];
 
+        // ==================================
+        // Calculate direction
+        // ==================================
+
+        const movementDirection =
+            getDirectionFromMovement(
+                previous,
+                current,
+                currentDirection
+            );
+
+        if (movementDirection) {
+
+            currentDirection =
+                movementDirection;
+
+        }
+
+        // ==================================
+        // Screen position
+        // ==================================
 
         const screenPoint =
             getWorldPoint(
@@ -1188,47 +1311,43 @@ async function animateRobotPath(path) {
                 maxY
             );
 
-
         moveRobotIcon(
             screenPoint.x,
             screenPoint.y,
             true
         );
 
+        // ==================================
+        // Update X/Y
+        // ==================================
 
-        // Update logical coordinates
-        if (robotX) {
-            robotX.textContent =
-                current.x;
-        }
-
-        if (robotY) {
-            robotY.textContent =
-                current.y;
-        }
-
+        updateRobotDisplay(
+            current.x,
+            current.y,
+            currentDirection
+        );
 
         await sleep(850);
+
     }
 
-
     // ======================================
-    // Ensure final position is exact
+    // FINAL VM STATE
     // ======================================
 
     const finalPoint =
         path[path.length - 1];
 
+    const normalizedFinalDirection =
+        normalizeDirection(
+            finalDirection
+        );
 
-    if (robotX) {
-        robotX.textContent =
-            finalPoint.x;
-    }
-
-    if (robotY) {
-        robotY.textContent =
-            finalPoint.y;
-    }
+    updateRobotDisplay(
+        finalPoint.x,
+        finalPoint.y,
+        normalizedFinalDirection
+    );
 
 }
 
@@ -1255,24 +1374,18 @@ function drawRobotPath(
 
     }
 
-
     const canvas =
         simulationCanvas;
 
     const ctx =
         canvas.getContext("2d");
 
-
-    // ======================================
     // Canvas size
-    // ======================================
-
     canvas.width =
         world.clientWidth;
 
     canvas.height =
         world.clientHeight;
-
 
     ctx.clearRect(
         0,
@@ -1281,11 +1394,7 @@ function drawRobotPath(
         canvas.height
     );
 
-
-    // ======================================
-    // Calculate boundaries if necessary
-    // ======================================
-
+    // Calculate boundaries
     if (
         minX === null ||
         maxX === null ||
@@ -1295,15 +1404,15 @@ function drawRobotPath(
 
         const xs =
             path.map(
-                point => point.x
+                point =>
+                    Number(point.x)
             );
-
 
         const ys =
             path.map(
-                point => point.y
+                point =>
+                    Number(point.y)
             );
-
 
         minX =
             Math.min(...xs);
@@ -1319,13 +1428,8 @@ function drawRobotPath(
 
     }
 
-
-    // ======================================
-    // Draw Path
-    // ======================================
-
+    // Draw path
     ctx.beginPath();
-
 
     path.forEach(
         (point, index) => {
@@ -1338,7 +1442,6 @@ function drawRobotPath(
                     minY,
                     maxY
                 );
-
 
             if (index === 0) {
 
@@ -1359,16 +1462,11 @@ function drawRobotPath(
         }
     );
 
-
     ctx.lineWidth = 3;
 
     ctx.stroke();
 
-
-    // ======================================
-    // Draw Path Points
-    // ======================================
-
+    // Draw path points
     path.forEach(
         point => {
 
@@ -1381,9 +1479,7 @@ function drawRobotPath(
                     maxY
                 );
 
-
             ctx.beginPath();
-
 
             ctx.arc(
                 screenPoint.x,
@@ -1393,17 +1489,12 @@ function drawRobotPath(
                 Math.PI * 2
             );
 
-
             ctx.fill();
 
         }
     );
 
-
-    // ======================================
     // Origin Marker
-    // ======================================
-
     const origin =
         getWorldPoint(
             {
@@ -1415,7 +1506,6 @@ function drawRobotPath(
             minY,
             maxY
         );
-
 
     ctx.beginPath();
 
@@ -1431,7 +1521,6 @@ function drawRobotPath(
 
 }
 
-
 // ==========================================
 // RESET ROBOT POSITION
 // ==========================================
@@ -1442,13 +1531,11 @@ function resetRobotPosition() {
         return;
     }
 
-
     const centerX =
         world.clientWidth / 2;
 
     const centerY =
         world.clientHeight / 2;
-
 
     moveRobotIcon(
         centerX,
@@ -1456,40 +1543,13 @@ function resetRobotPosition() {
         false
     );
 
-
-    if (robotX) {
-
-        robotX.textContent =
-            "0";
-
-    }
-
-
-    if (robotY) {
-
-        robotY.textContent =
-            "0";
-
-    }
-
-
-    if (robotDirection) {
-
-        robotDirection.textContent =
-            "NORTH";
-
-    }
-
-
-    if (robotAngle) {
-
-        robotAngle.textContent =
-            "270°";
-
-    }
+    updateRobotDisplay(
+        0,
+        0,
+        "NORTH"
+    );
 
 }
-
 
 // ==========================================
 // CLEAR PATH
@@ -1501,12 +1561,10 @@ function clearRobotPath() {
         return;
     }
 
-
     const ctx =
         simulationCanvas.getContext(
             "2d"
         );
-
 
     ctx.clearRect(
         0,
@@ -1516,7 +1574,6 @@ function clearRobotPath() {
     );
 
 }
-
 
 // ==========================================
 // RESET EVERYTHING
@@ -1528,18 +1585,15 @@ async function resetRobot() {
 
     resetRobotPosition();
 
-
     setConsole(
         "RoboLang compiler ready..."
     );
 
-
     // Clear pipeline status
     const stages =
         document.querySelectorAll(
-            ".stage"
+            ".pipeline-stage"
         );
-
 
     stages.forEach(
         stage => {
@@ -1553,11 +1607,9 @@ async function resetRobot() {
         }
     );
 
-
     updateLineNumbers();
 
 }
-
 
 // ==========================================
 // SLEEP
@@ -1574,7 +1626,6 @@ function sleep(milliseconds) {
     );
 
 }
-
 
 // ==========================================
 // INITIAL ROBOT POSITION
@@ -1596,7 +1647,6 @@ window.addEventListener(
     }
 );
 
-
 // ==========================================
 // WINDOW RESIZE
 // ==========================================
@@ -1607,9 +1657,21 @@ window.addEventListener(
 
         updateLineNumbers();
 
+        // Keep robot centered when no program
+        // has been executed yet.
+        if (
+            robotX &&
+            robotY &&
+            robotX.textContent === "0" &&
+            robotY.textContent === "0"
+        ) {
+
+            resetRobotPosition();
+
+        }
+
     }
 );
-
 
 // ==========================================
 // START
