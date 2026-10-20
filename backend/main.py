@@ -6,7 +6,7 @@ from compiler.lexer import Lexer
 from compiler.parser import Parser
 from compiler.semantic import SemanticAnalyzer, SemanticError
 from compiler.ir import IRGenerator
-from compiler.codegen import CodeGenerator
+from compiler.codegen import CodeGenerator, OP_MOVE, OP_TURN, DIR_LEFT, DIR_RIGHT
 from compiler.vm import RoboLangVM
 
 # ==========================================
@@ -259,9 +259,23 @@ def execute(program: SourceProgram):
         },
         "tokens": serialize_tokens(tokens),
         "ast": ast_string,
+        "ast_tree": program_ast.to_dict(),
+        "semantic_checks": analyzer.checks,
         "ir": ir_string,
+        "ir_data": [
+            {
+                "index": i,
+                "opcode": instruction.opcode,
+                "operand": instruction.operand,
+            }
+            for i, instruction in enumerate(
+                ir_program.instructions
+            )
+        ],
         "bytecode": bytecode.instructions,
+        "bytecode_labeled": decode_bytecode(bytecode),
         "robot": serialize_robot_state(robot),
+        "execution_trace": vm.trace,
     }
 
 
@@ -294,6 +308,70 @@ def serialize_robot_state(robot):
         "direction": robot.direction,
         "path": [{"x": position[0], "y": position[1]} for position in robot.path],
     }
+
+
+# ==========================================
+# Decode Bytecode
+# ==========================================
+
+
+def decode_bytecode(bytecode):
+
+    decoded = []
+
+    instructions = bytecode.instructions
+    i = 0
+
+    while i < len(instructions):
+
+        opcode = instructions[i]
+
+        if opcode == OP_MOVE:
+
+            operand = instructions[i + 1]
+
+            decoded.append(
+                {
+                    "opcode": "MOVE",
+                    "operand": operand,
+                    "raw": [opcode, operand],
+                }
+            )
+
+            i += 2
+
+        elif opcode == OP_TURN:
+
+            direction_code = instructions[i + 1]
+
+            direction_name = (
+                "LEFT" if direction_code == DIR_LEFT
+                else "RIGHT"
+            )
+
+            decoded.append(
+                {
+                    "opcode": "TURN",
+                    "operand": direction_name,
+                    "raw": [opcode, direction_code],
+                }
+            )
+
+            i += 2
+
+        else:
+
+            decoded.append(
+                {
+                    "opcode": f"UNKNOWN({opcode})",
+                    "operand": None,
+                    "raw": [opcode],
+                }
+            )
+
+            i += 1
+
+    return decoded
 
 
 # ==========================================

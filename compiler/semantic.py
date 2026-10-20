@@ -32,6 +32,7 @@ class SemanticAnalyzer:
     def __init__(self):
 
         self.errors = []
+        self.checks = []
 
     # ==========================================
     # Analyze Program
@@ -41,6 +42,7 @@ class SemanticAnalyzer:
 
         # Clear previous errors
         self.errors = []
+        self.checks = []
 
         # --------------------------------------
         # Check Program AST
@@ -129,6 +131,16 @@ class SemanticAnalyzer:
                 }
             )
 
+            self.checks.append(
+                {
+                    "line": node.line,
+                    "node": "MoveCommand",
+                    "check": "Distance type",
+                    "status": "fail",
+                    "detail": "Distance must be a number",
+                }
+            )
+
             return
 
         # Distance must be greater than zero
@@ -144,6 +156,29 @@ class SemanticAnalyzer:
                     "type": "semantic",
                 }
             )
+
+            self.checks.append(
+                {
+                    "line": node.line,
+                    "node": "MoveCommand",
+                    "check": "Distance value",
+                    "status": "fail",
+                    "detail": f"Must be > 0, found: {node.distance}",
+                }
+            )
+
+            return
+
+        # All checks passed
+        self.checks.append(
+            {
+                "line": node.line,
+                "node": "MoveCommand",
+                "check": f"MOVE {node.distance}",
+                "status": "pass",
+                "detail": "Valid distance",
+            }
+        )
 
     # ==========================================
     # Validate TURN
@@ -166,6 +201,29 @@ class SemanticAnalyzer:
                     "type": "semantic",
                 }
             )
+
+            self.checks.append(
+                {
+                    "line": node.line,
+                    "node": "TurnCommand",
+                    "check": "Direction value",
+                    "status": "fail",
+                    "detail": f"Invalid: '{node.direction}'",
+                }
+            )
+
+            return
+
+        # All checks passed
+        self.checks.append(
+            {
+                "line": node.line,
+                "node": "TurnCommand",
+                "check": f"TURN {node.direction}",
+                "status": "pass",
+                "detail": "Valid direction",
+            }
+        )
 
 
 # ==========================================

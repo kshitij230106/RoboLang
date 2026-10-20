@@ -57,6 +57,9 @@ class RoboLangVM:
         # Execution status
         self.running = False
 
+        # Execution trace
+        self.trace = []
+
     # --------------------------------------
     # Run Bytecode
     # --------------------------------------
@@ -69,6 +72,9 @@ class RoboLangVM:
 
         # Start current program from instruction 0
         self.pc = 0
+
+        # Reset execution trace
+        self.trace = []
 
         self.running = True
 
@@ -86,7 +92,26 @@ class RoboLangVM:
 
                 distance = instructions[self.pc + 1]
 
+                before = {
+                    "x": self.robot.x,
+                    "y": self.robot.y,
+                    "direction": self.robot.direction,
+                }
+
                 self.move(distance)
+
+                self.trace.append(
+                    {
+                        "step": len(self.trace),
+                        "instruction": f"MOVE {distance}",
+                        "before": before,
+                        "after": {
+                            "x": self.robot.x,
+                            "y": self.robot.y,
+                            "direction": self.robot.direction,
+                        },
+                    }
+                )
 
                 self.pc += 2
 
@@ -98,7 +123,31 @@ class RoboLangVM:
 
                 direction = instructions[self.pc + 1]
 
+                dir_name = (
+                    "LEFT" if direction == DIR_LEFT
+                    else "RIGHT"
+                )
+
+                before = {
+                    "x": self.robot.x,
+                    "y": self.robot.y,
+                    "direction": self.robot.direction,
+                }
+
                 self.turn(direction)
+
+                self.trace.append(
+                    {
+                        "step": len(self.trace),
+                        "instruction": f"TURN {dir_name}",
+                        "before": before,
+                        "after": {
+                            "x": self.robot.x,
+                            "y": self.robot.y,
+                            "direction": self.robot.direction,
+                        },
+                    }
+                )
 
                 self.pc += 2
 

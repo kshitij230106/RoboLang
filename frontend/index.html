@@ -523,44 +523,12 @@ STOP</textarea>
             </div>
 
 
-            <!-- Code Generation -->
-
-            <div class="pipeline-stage">
-
-                <div class="stage-number">
-                    06
-                </div>
-
-                <div class="stage-content">
-
-                    <strong>
-                        CodeGen
-                    </strong>
-
-                    <span>
-                        Bytecode
-                    </span>
-
-                </div>
-
-                <div class="stage-status">
-                    ✓
-                </div>
-
-            </div>
-
-
-            <div class="pipeline-arrow">
-                →
-            </div>
-
-
             <!-- VM -->
 
             <div class="pipeline-stage">
 
                 <div class="stage-number">
-                    07
+                    06
                 </div>
 
                 <div class="stage-content">
@@ -582,6 +550,149 @@ STOP</textarea>
             </div>
 
         </div>
+
+    </section>
+
+
+
+    <!-- =========================================
+         COMPILER DEBUGGER
+    ========================================== -->
+
+    <section class="debugger-panel" id="debuggerPanel">
+
+
+        <!-- Header -->
+
+        <div class="debugger-header">
+
+            <div>
+
+                <h2>
+                    🔍 Compiler Debugger
+                </h2>
+
+                <p>
+                    Inspect each compilation stage
+                </p>
+
+            </div>
+
+
+            <button
+                class="debugger-toggle"
+                id="debuggerToggle"
+                onclick="toggleDebugger()"
+            >
+                ▼ Show Details
+            </button>
+
+        </div>
+
+
+
+        <!-- Body (hidden by default) -->
+
+        <div
+            class="debugger-body"
+            id="debuggerBody"
+            style="display: none;"
+        >
+
+
+            <!-- Tabs -->
+
+            <div class="debugger-tabs">
+
+                <button
+                    class="debugger-tab active"
+                    onclick="switchDebuggerTab('tokens', this)"
+                >
+                    🔤 Tokens
+                </button>
+
+                <button
+                    class="debugger-tab"
+                    onclick="switchDebuggerTab('ast', this)"
+                >
+                    🌳 AST
+                </button>
+
+                <button
+                    class="debugger-tab"
+                    onclick="switchDebuggerTab('semantic', this)"
+                >
+                    ✅ Semantic
+                </button>
+
+                <button
+                    class="debugger-tab"
+                    onclick="switchDebuggerTab('ir', this)"
+                >
+                    ⚙️ IR
+                </button>
+
+                <button
+                    class="debugger-tab"
+                    onclick="switchDebuggerTab('trace', this)"
+                >
+                    📍 Execution
+                </button>
+
+            </div>
+
+
+
+            <!-- Tab Panes -->
+
+            <div
+                class="debugger-pane active"
+                id="debugPane-tokens"
+            >
+                <div class="debugger-empty">
+                    Run a program to see tokens
+                </div>
+            </div>
+
+            <div
+                class="debugger-pane"
+                id="debugPane-ast"
+            >
+                <div class="debugger-empty">
+                    Run a program to see the AST
+                </div>
+            </div>
+
+            <div
+                class="debugger-pane"
+                id="debugPane-semantic"
+            >
+                <div class="debugger-empty">
+                    Run a program to see semantic checks
+                </div>
+            </div>
+
+            <div
+                class="debugger-pane"
+                id="debugPane-ir"
+            >
+                <div class="debugger-empty">
+                    Run a program to see IR
+                </div>
+            </div>
+
+            <div
+                class="debugger-pane"
+                id="debugPane-trace"
+            >
+                <div class="debugger-empty">
+                    Run a program to see execution trace
+                </div>
+            </div>
+
+
+        </div>
+
 
     </section>
 
@@ -640,7 +751,7 @@ Write your program and press RUN PROGRAM.</pre>
         </span>
 
         <span>
-            Lexer • Parser • AST • Semantic • IR • Bytecode • VM
+            Lexer • Parser • AST • Semantic • IR • VM
         </span>
 
     </footer>
